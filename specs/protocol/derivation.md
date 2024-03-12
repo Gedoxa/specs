@@ -797,6 +797,21 @@ Additionally, it buffers a short history of references to recently processed saf
 from which L1 blocks each was derived.
 This history does not have to be complete, but enables later L1 finality signals to be translated into L2 finality.
 
+The Engine Queue stage handles failures when constructing an L2 block from the attributes provided in the previous
+stage (i.e invalid transaction or state transition in the block).
+
+#### Invalid *(Insert Hardfork)* Payloads
+The engine must instead replace this payload with a deposits-only empty block. In other words, when provided
+`PayloadAttributes`, there will always be two possible block candidates that can advance the safe head:
+
+1. Always Valid (empty deposits-only block)
+2. A proper L2 block created from the provided payload.
+
+#### Invalid Bedrock/Canyon/Delta/Ecotone Payloads
+The batch that produced this payload should be dropped & the safe head should not be advanced. The engine queue
+will attempt to use the next batch for that timestamp from the batch queue. If no valid batch is found, the rollup
+node will eventually create a deposit only batch after the sequencer window has elapsed.
+
 #### Engine API usage
 
 To interact with the engine, the [execution engine API][exec-engine] is used, with the following JSON-RPC methods:
@@ -904,12 +919,6 @@ enact the change, as linear rewinds of the tip of the chain may not be supported
 If the safe and unsafe L2 heads are identical (whether because of failed consolidation or not), we send the L2 payload
 attributes to the execution engine to be constructed into a proper L2 block.
 This L2 block will then become both the new L2 safe and unsafe head.
-
-If a payload attributes created from a batch cannot be inserted into the chain because of a validation error (i.e. there
-was an invalid transaction or state transition in the block) the batch should be dropped & the safe head should not be
-advanced. The engine queue will attempt to use the next batch for that timestamp from the batch queue. If no valid batch
-is found, the rollup node will create a deposit only batch which should always pass validation because deposits are
-always valid.
 
 Interaction with the execution engine via the execution engine API is detailed in the [Communication with the Execution
 Engine][exec-engine-comm] section.
