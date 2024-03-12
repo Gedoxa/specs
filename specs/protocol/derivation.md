@@ -807,6 +807,11 @@ The engine must instead replace this payload with a deposits-only empty block. I
 1. Always Valid (empty deposits-only block)
 2. A proper L2 block created from the provided payload.
 
+   > For span batches, this implies the engine queue will process every payload from the span and does not drop
+   > it in its entirety. In the worst case, every block after the first invalidated one also becomes an empty
+   > deposits-only block. And in the best case, the encoded txs those future payloads are unrelated and succesfully
+   > processed.
+
 #### Invalid Bedrock/Canyon/Delta/Ecotone Payloads
 The batch that produced this payload should be dropped & the safe head should not be advanced. The engine queue
 will attempt to use the next batch for that timestamp from the batch queue. If no valid batch is found, the rollup
